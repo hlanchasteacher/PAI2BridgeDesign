@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase B · Bridge Design &amp; Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f8; --card:#ffffff; --ink:#0f1e35; --muted:#5b6b82;
+  --blue:#1d4ed8; --blue-dark:#12296b; --line:#d9e2f0;
+  --ok:#0b8f62; --ok-bg:#e6f7f0; --bad:#c81e1e; --bad-bg:#fdecec;
+  --accent:#f59e0b; --radius:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+html[dir="rtl"] body{font-family:'Cairo',system-ui,-apple-system,sans-serif;line-height:1.85}
+h1,h2,h3{line-height:1.25;margin:0}
+p{margin:.4rem 0}
+a{color:var(--blue)}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;padding:10px 20px;color:#fff;
+  background:rgba(18,41,107,.97);backdrop-filter:blur(8px);
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.3px}
+.lang-switch{display:flex;gap:4px;background:rgba(255,255,255,.14);padding:4px;border-radius:999px}
+.lang-switch button{
+  border:0;background:transparent;color:#dbe6f6;padding:6px 18px;border-radius:999px;
+  cursor:pointer;font:inherit;font-weight:700;font-size:.9rem;transition:.2s;
+}
+.lang-switch button.active{background:#fff;color:var(--blue-dark)}
+.lang-switch button:not(.active):hover{background:rgba(255,255,255,.12)}
+
+/* ---------- hero ---------- */
+.hero{
+  color:#fff;padding:52px 20px 44px;
+  background:
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/30px 30px,
+    linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/30px 30px,
+    linear-gradient(135deg,#0f2054,#1d4ed8 65%,#2563eb);
+}
+.hero-inner{max-width:1000px;margin:0 auto}
+.hero-badge{
+  display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);
+  padding:4px 14px;border-radius:999px;font-size:.8rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+}
+.hero h1{font-size:clamp(1.7rem,4vw,2.6rem);margin:14px 0 10px;font-weight:800}
+.hero p{max-width:70ch;color:#dbe6f6;font-size:1.02rem}
+.team-row{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-top:22px}
+.team-row label{font-weight:700;font-size:.95rem;padding-top:8px}
+.team-row input,.team-row textarea{
+  padding:10px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.12);color:#fff;font:inherit;
+  width:100%;max-width:520px;transition:.2s;
+}
+.team-row textarea{min-height:74px;resize:vertical;line-height:1.5}
+.team-row input::placeholder,.team-row textarea::placeholder{color:rgba(255,255,255,.65)}
+.team-row input:focus,.team-row textarea:focus{outline:none;border-color:#fff;background:rgba(255,255,255,.2)}
+
+/* ---------- nav chips ---------- */
+.steps-nav{
+  max-width:1000px;margin:-22px auto 0;padding:0 20px;position:relative;z-index:5;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.steps-nav a{
+  background:#fff;color:var(--blue-dark);text-decoration:none;font-weight:700;font-size:.88rem;
+  padding:8px 16px;border-radius:999px;box-shadow:0 4px 14px rgba(15,30,53,.12);
+  border:1px solid var(--line);transition:.18s;
+}
+.steps-nav a:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ---------- layout ---------- */
+main{max-width:1000px;margin:0 auto;padding:26px 20px 60px}
+.card{
+  background:var(--card);border-radius:var(--radius);padding:26px;
+  box-shadow:0 6px 24px rgba(15,30,53,.07);border:1px solid var(--line);
+  margin-bottom:22px;scroll-margin-top:80px;
+}
+.card-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.step-badge{
+  flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#1d4ed8,#12296b);color:#fff;font-weight:800;font-size:1.15rem;
+}
+.card-head h2{font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:800}
+.lead{color:var(--muted);margin-bottom:16px}
+
+/* ---------- rules ---------- */
+.rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(265px,1fr))}
+.rule{background:#f8fafd;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.rule h3{font-size:1rem;font-weight:800;margin-bottom:4px;display:flex;gap:8px;align-items:flex-start}
+.rule p{font-size:.93rem;color:var(--muted);margin:0}
+.rule.golden{background:#fffbeb;border-color:#fcd34d}
+.rule.golden h3{color:#92400e}
+
+/* ---------- sketch / blueprint blocks ---------- */
+.sketch-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.sketch h3{font-size:1rem;margin-bottom:8px;font-weight:800}
+.canvas-wrap{
+  border:2px dashed #c3d3ea;border-radius:12px;overflow:hidden;background:#fff;
+}
+canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.canvas-tools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+.hint{
+  background:#eef4ff;border-left:5px solid var(--blue);border-radius:10px;
+  padding:12px 16px;margin:16px 0;font-size:.94rem;
+}
+html[dir="rtl"] .hint{border-left:0;border-right:5px solid var(--blue)}
+.hint b{display:block;margin-bottom:2px}
+.hint a{font-weight:700;text-decoration:none;border-bottom:1.5px solid currentColor}
+.hint a:hover{opacity:.75}
+.hint.warn{background:#fffbeb;border-left-color:#f59e0b}
+html[dir="rtl"] .hint.warn{border-right-color:#f59e0b}
+
+/* ---------- buttons ---------- */
+.btn{
+  border:0;border-radius:10px;padding:9px 18px;font:inherit;font-weight:700;font-size:.9rem;
+  cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-ghost{background:#fff;color:var(--blue-dark);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-danger{background:#fff;color:var(--bad);border:1.5px solid #f3c9c9}
+.btn-danger:hover{background:var(--bad);color:#fff;border-color:var(--bad)}
+
+/* ---------- form fields ---------- */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:.9rem}
+input[type=number],input[type=text],textarea{
+  font:inherit;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);
+  background:#fff;color:var(--ink);width:100%;transition:.15s;
+}
+input[type=number]{max-width:200px}
+input:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.13)}
+textarea{resize:vertical;min-height:90px;line-height:1.6}
+
+.dims{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.msg{font-size:.92rem;padding:10px 14px;border-radius:10px;background:#f1f5fb;color:var(--muted)}
+.msg.ok{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.msg.bad{background:var(--bad-bg);color:var(--bad);font-weight:700}
+
+/* ---------- checklist ---------- */
+.check{display:flex;gap:10px;align-items:flex-start;padding:9px 0;font-size:.95rem;cursor:pointer}
+.check input{margin-top:4px;width:18px;height:18px;accent-color:var(--blue);flex:none;cursor:pointer}
+
+/* ---------- invoice ---------- */
+.invoice{display:grid;gap:24px;grid-template-columns:1fr 1.25fr}
+@media(max-width:760px){.invoice{grid-template-columns:1fr}}
+.inv-inputs{display:flex;flex-direction:column;gap:16px}
+.inv-out{background:#f8fafd;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.line{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:.94rem}
+.line b{font-variant-numeric:tabular-nums}
+.line.total{border-top:2px solid var(--line);margin-top:6px;padding-top:12px;font-size:1.05rem;font-weight:800}
+.line.total b{color:var(--blue-dark)}
+.bar{height:12px;border-radius:99px;background:#e3ebf7;overflow:hidden;margin:14px 0 10px}
+.bar-fill{height:100%;width:0;border-radius:99px;background:var(--ok);transition:width .3s,background .3s}
+.note{font-size:.83rem;color:var(--muted);margin-top:10px}
+
+/* ---------- footer / warn ---------- */
+.warn{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:16px 18px;margin-top:18px}
+.warn b{color:#92400e;display:block;margin-bottom:4px}
+.footer{max-width:1000px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:.85rem;text-align:center}
+.wordcount{font-size:.83rem;color:var(--muted);text-align:end}
+
+/* ---------- print ---------- */
+@media print{
+  .topbar,.steps-nav,.canvas-tools,.btn,.no-print{display:none!important}
+  body{background:#fff}
+  .hero{background:#fff;color:#000;padding:0 0 12px}
+  .hero p,.hero-badge{color:#333}
+  .team-row textarea{border:1px solid #999;color:#000;background:#fff}
+  .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<div class="topbar">
+  <div class="brand">📐 <span data-i18n="app.short">Phase B</span></div>
+  <div class="lang-switch">
+    <button data-lang="en" class="active">English</button>
+    <button data-lang="ar">العربية</button>
+  </div>
+</div>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge" data-i18n="hero.badge">Technology · PAI 2</span>
+    <h1 data-i18n="hero.title">Phase B: Developing Ideas &amp; Budget</h1>
+    <p data-i18n="hero.subtitle">Engineers, to the drawing board! In Phase A you found out which geometric shapes and paper profiles are the strongest. Today you have one session to design the final blueprint of your bridge and work out whether you have enough money to build it.</p>
+    <div class="team-row">
+      <label for="teamName" data-i18n="hero.teamLabel">Group members — name and surname</label>
+      <textarea id="teamName" rows="3" data-persist placeholder="e.g. Ana García, Luis Pérez, Marta Ruiz" data-i18n-placeholder="hero.teamPlaceholder"></textarea>
+    </div>
+  </div>
+</header>
+
+<!-- ================= NAV ================= -->
+<nav class="steps-nav no-print">
+  <a href="#s1" data-i18n="nav.s1">1 · Rules</a>
+  <a href="#s2" data-i18n="nav.s2">2 · Sketches</a>
+  <a href="#s3" data-i18n="nav.s3">3 · Blueprint</a>
+  <a href="#s4" data-i18n="nav.s4">4 · Invoice</a>
+  <a href="#s5" data-i18n="nav.s5">5 · Justification</a>
+  <a href="#s6" data-i18n="nav.s6">Submit</a>
+</nav>
+
+<main>
+
+  <!-- ============ STEP 1 ============ -->
+  <section class="card" id="s1">
+    <div class="card-head">
+      <span class="step-badge">1</span>
+      <h2 data-i18n="s1.title">Step 1: Specifications &amp; Budget</h2>
+    </div>
+    <p class="lead" data-i18n="s1.intro">Copy these rules into your engineering notebook before you start designing.</p>
+
+    <div class="rules">
+      <div class="rule">
+        <h3>📏 <span data-i18n="s1.r1.title">The gap: 30 cm</span></h3>
+        <p data-i18n="s1.r1.text">Your bridge must cross a gap of 30 centimetres.</p>
+      </div>
+      <div class="rule golden">
+        <h3>⭐ <span data-i18n="s1.r2.title">Golden Rule — free support</span></h3>
+        <p data-i18n="s1.r2.text">The bridge must rest freely on the gap. Taping, gluing or fixing the ends of the bridge to the desks is strictly forbidden. It has to hold itself up!</p>
+      </div>
+      <div class="rule">
+        <h3>💰 <span data-i18n="s1.r3.title">Maximum budget: 10,000 credits</span></h3>
+        <p data-i18n="s1.r3.text">If your design costs more than this, the design is not viable.</p>
+      </div>
+      <div class="rule">
+        <h3>📄 <span data-i18n="s1.r4.title">Paper: 1,000 credits per A4 sheet</span></h3>
+        <p data-i18n="s1.r4.text">Every sheet you use counts — including the ones you cut up.</p>
+      </div>
+      <div class="rule">
+        <h3>🎗️ <span data-i18n="s1.r5.title">Tape: 100 credits per 10 cm strip</span></h3>
+        <p data-i18n="s1.r5.text">Tape is only for joining pieces (joints). You may not wrap or laminate the paper with tape.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2 ============ -->
+  <section class="card" id="s2">
+    <div class="card-head">
+      <span class="step-badge">2</span>
+      <h2 data-i18n="s2.title">Step 2: Brainstorm Sketches (rough)</h2>
+    </div>
+    <p class="lead" data-i18n="s2.intro">Draw TWO different bridge ideas. These are rough thinking sketches — speed matters more than beauty. Use the interactive canvases below (draw with your mouse, finger or stylus), or draw on paper and photograph it.</p>
+
+    <div class="hint">
+      <b data-i18n="s2.hint.title">Engineering hint</b>
+      <span data-i18n="s2.hint.text">Remember your geometry test (square vs. triangle) and the zigzag test. Talk as a team: which idea looks stronger? Which one uses fewer sheets and less tape?</span>
+    </div>
+
+    <div class="sketch-grid">
+      <div class="sketch">
+        <h3 data-i18n="s2.a">Sketch A</h3>
+        <div class="canvas-wrap"><canvas id="cv1" width="900" height="560"></canvas></div>
+        <div class="canvas-tools">
+          <button class="btn btn-ghost" data-clear="cv1" data-i18n="s2.clear">Clear</button>
+          <button class="btn btn-ghost" data-download="cv1" data-i18n="s2.download">Download PNG</button>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label for="notesA" data-i18n="s2.notes">Notes</label>
+          <textarea id="notesA" data-persist placeholder="What did your team say about this idea?" data-i18n-placeholder="s2.notesPlaceholder"></textarea>
+        </div>
+      </div>
+
+      <div class="sketch">
+        <h3 data-i18n="s2.b">Sketch B</h3>
+        <div class="canvas-wrap"><canvas id="cv2" width="900" height="560"></canvas></div>
+        <div class="canvas-tools">
+          <button class="btn btn-ghost" data-clear="cv2" data-i18n="s2.clear">Clear</button>
+          <button class="btn btn-ghost" data-download="cv2" data-i18n="s2.download">Download PNG</button>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label for="notesB" data-i18n="s2.notes">Notes</label>
+          <textarea id="notesB" data-persist placeholder="What did your team say about this idea?" data-i18n-placeholder="s2.notesPlaceholder"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3 ============ -->
+  <section class="card" id="s3">
+    <div class="card-head">
+      <span class="step-badge">3</span>
+      <h2 data-i18n="s3.title">Step 3: The Final Blueprint (technical drawing)</h2>
+    </div>
+    <p class="lead" data-i18n="s3.intro">Choose your best idea and produce the Manufacturing Plan. It must be so clear that someone else could build your bridge without asking you a single question.</p>
+
+    <div class="hint" style="background:#f0fdf4;border-left-color:#0b8f62">
+      <b data-i18n="s3.tools.title">Draw your blueprint by hand</b>
+      <span data-i18n="s3.tools.text">Use an A4 sheet, a pencil and a ruler. Draw your bridge <strong>to scale</strong> (for example, 1 cm on paper = 1 cm in real life) using <strong>only straight lines</strong>. Write the length, height and width next to the drawing, and label every piece with what it is and what it is made of (e.g. "Pier: paper cylinder", "Deck: zigzag paper"). When you finish, take a <strong>sharp, well-lit photo</strong> of the sheet and upload that photo to Toddle. The on-screen canvas below is only for quick practice — the official blueprint must be hand-drawn on paper.</span>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label class="check"><input type="checkbox" id="bp1" data-persist><span data-i18n="s3.c1">Use a ruler — clean, straight lines.</span></label>
+      <label class="check"><input type="checkbox" id="bp2" data-persist><span data-i18n="s3.c2">Write the measurements: length, height and width in centimetres.</span></label>
+      <label class="check"><input type="checkbox" id="bp3" data-persist><span data-i18n="s3.c3">Label every piece: what it is and what it is made of (e.g. "Pier: paper cylinder", "Deck: zigzag paper").</span></label>
+    </div>
+
+    <h3 style="font-size:1rem;margin-bottom:10px" data-i18n="s3.calc.title">Quick measurement check</h3>
+    <div class="dims">
+      <div class="field">
+        <label for="len" data-i18n="s3.length">Length (cm)</label>
+        <input type="number" id="len" min="0" step="0.5" data-persist>
+      </div>
+      <div class="field">
+        <label for="hei" data-i18n="s3.height">Height (cm)</label>
+        <input type="number" id="hei" min="0" step="0.5" data-persist>
+      </div>
+      <div class="field">
+        <label for="wid" data-i18n="s3.width">Width (cm)</label>
+        <input type="number" id="wid" min="0" step="0.5" data-persist>
+      </div>
+    </div>
+    <div class="msg" id="spanMsg"></div>
+
+    <h3 style="font-size:1rem;margin:20px 0 10px" data-i18n="s3.canvas">Optional practice canvas (official blueprint must be hand-drawn on paper)</h3>
+    <div class="canvas-wrap"><canvas id="cv3" width="900" height="620"></canvas></div>
+    <div class="canvas-tools">
+      <button class="btn btn-ghost" data-clear="cv3" data-i18n="s2.clear">Clear</button>
+      <button class="btn btn-ghost" data-download="cv3" data-i18n="s2.download">Download PNG</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 4 ============ -->
+  <section class="card" id="s4">
+    <div class="card-head">
+      <span class="step-badge">4</span>
+      <h2 data-i18n="s4.title">Step 4: Materials Invoice (the maths)</h2>
+    </div>
+    <p class="lead" data-i18n="s4.intro">Fill in the materials you need. The calculator updates automatically and warns you if you go over budget.</p>
+
+    <div class="invoice">
+      <div class="inv-inputs">
+        <div class="field">
+          <label for="sheets" data-i18n="s4.sheets">A4 sheets needed</label>
+          <input type="number" id="sheets" min="0" step="1" value="0" data-persist>
+        </div>
+        <div class="field">
+          <label for="tape" data-i18n="s4.tape">Centimetres of tape needed</label>
+          <input type="number" id="tape" min="0" step="1" value="0" data-persist>
+        </div>
+      </div>
+
+      <div class="inv-out">
+        <div class="line"><span data-i18n="s4.sheetsCost">Paper cost</span><b id="paperCost">0</b></div>
+        <div class="line"><span data-i18n="s4.strips">10 cm strips</span><b id="stripsCount">0</b></div>
+        <div class="line"><span data-i18n="s4.tapeCost">Tape cost</span><b id="tapeCost">0</b></div>
+        <div class="line total"><span data-i18n="s4.total">Total project cost</span><b id="totalCost">0</b></div>
+        <div class="line"><span data-i18n="s4.budget">Budget</span><b id="budgetVal">10,000</b></div>
+        <div class="line"><span data-i18n="s4.left">Credits left</span><b id="leftCredits">10,000</b></div>
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        <div class="msg" id="budgetMsg"></div>
+        <p class="note" data-i18n="s4.note">Tape is charged in complete 10 cm strips, so 25 cm of tape = 3 strips = 300 credits.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 5 ============ -->
+  <section class="card" id="s5">
+    <div class="card-head">
+      <span class="step-badge">5</span>
+      <h2 data-i18n="s5.title">Step 5: Justification</h2>
+    </div>
+    <p class="lead" data-i18n="s5.intro">Under your blueprint, write a short paragraph answering this question:</p>
+    <div class="hint"><span data-i18n="s5.prompt">"Why did you choose this design? Explain how you used geometry to make sure the bridge won't break, and how you made sure you didn't go over the 10,000-credit budget."</span></div>
+
+    <textarea id="justif" data-persist rows="7" placeholder="Write your justification here..." data-i18n-placeholder="s5.placeholder"></textarea>
+    <div class="wordcount" id="wordCount">0 words</div>
+    <p class="note" data-i18n="s5.tip">Aim for at least 60 words. Mention the shapes you used and show your numbers.</p>
+  </section>
+
+  <!-- ============ SUBMIT ============ -->
+  <section class="card" id="s6">
+    <div class="card-head">
+      <span class="step-badge">✓</span>
+      <h2 data-i18n="s6.title">Submit on Toddle — before Saturday 7 November!</h2>
+    </div>
+    <p class="lead" data-i18n="s6.intro">To pass Phase B, upload these to the Toddle task before Saturday 7 November:</p>
+    <label class="check"><input type="checkbox" id="sub0" data-persist><span data-i18n="s6.i0">All group members' names and surnames are written in the first box at the top of this page.</span></label>
+    <label class="check"><input type="checkbox" id="sub1" data-persist><span data-i18n="s6.i1">Photo of your two initial sketches (Step 2).</span></label>
+    <label class="check"><input type="checkbox" id="sub2" data-persist><span data-i18n="s6.i2">A sharp photo of the final blueprint and your materials invoice (Steps 3 and 4).</span></label>
+    <label class="check"><input type="checkbox" id="sub3" data-persist><span data-i18n="s6.i3">The text of your justification (Step 5).</span></label>
+
+    <div class="warn">
+      <b data-i18n="s6.warn.title">Heads up!</b>
+      <span data-i18n="s6.warn.text">Next lesson you move on to building (Phase C). You will be given exactly the number of sheets and centimetres of tape you wrote on today's invoice. Calculate carefully!</span>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px" class="no-print">
+      <button class="btn btn-primary" id="printBtn" data-i18n="s6.print">Print / Save as PDF</button>
+      <button class="btn btn-danger" id="resetBtn" data-i18n="s6.reset">Start over</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p data-i18n="foot.saved">Your work is saved automatically in this browser.</p>
+</footer>
+
+<script>
+/* =========================================================
+   1. TRANSLATIONS
+   ========================================================= */
+const i18n = {
+  en: {
+    "app.short": "Phase B",
+    "hero.badge": "Technology · PAI 2",
+    "hero.title": "Phase B: Developing Ideas & Budget",
+    "hero.subtitle": "Engineers, to the drawing board! In Phase A you found out which geometric shapes and paper profiles are the strongest. Today you have one session to design the final blueprint of your bridge and work out whether you have enough money to build it.",
+    "hero.teamLabel": "Group members — name and surname",
+    "hero.teamPlaceholder": "e.g. Ana García, Luis Pérez, Marta Ruiz",
+    "nav.s1": "1 · Rules", "nav.s2": "2 · Sketches", "nav.s3": "3 · Blueprint",
+    "nav.s4": "4 · Invoice", "nav.s5": "5 · Justification", "nav.s6": "Submit",
+
+    "s1.title": "Step 1: Specifications & Budget",
+    "s1.intro": "Copy these rules into your engineering notebook before you start designing.",
+    "s1.r1.title": "The gap: 30 cm",
+    "s1.r1.text": "Your bridge must cross a gap of 30 centimetres.",
+    "s1.r2.title": "Golden Rule — free support",
+    "s1.r2.text": "The bridge must rest freely on the gap. Taping, gluing or fixing the ends of the bridge to the desks is strictly forbidden. It has to hold itself up!",
+    "s1.r3.title": "Maximum budget: 10,000 credits",
+    "s1.r3.text": "If your design costs more than this, the design is not viable.",
+    "s1.r4.title": "Paper: 1,000 credits per A4 sheet",
+    "s1.r4.text": "Every sheet you use counts — including the ones you cut up.",
+    "s1.r5.title": "Tape: 100 credits per 10 cm strip",
+    "s1.r5.text": "Tape is only for joining pieces (joints). You may not wrap or laminate the paper with tape.",
+
+    "s2.title": "Step 2: Brainstorm Sketches (rough)",
+    "s2.intro": "Draw TWO different bridge ideas. These are rough thinking sketches — speed matters more than beauty. Use the interactive canvases below (draw with your mouse, finger or stylus), or draw on paper and photograph it.",
+    "s2.hint.title": "Engineering hint",
+    "s2.hint.text": "Remember your geometry test (square vs. triangle) and the zigzag test. Talk as a team: which idea looks stronger? Which one uses fewer sheets and less tape?",
+    "s2.a": "Sketch A", "s2.b": "Sketch B",
+    "s2.clear": "Clear", "s2.download": "Download PNG",
+    "s2.notes": "Notes", "s2.notesPlaceholder": "What did your team say about this idea?",
+
+    "s3.title": "Step 3: The Final Blueprint (technical drawing)",
+    "s3.intro": "Choose your best idea and produce the Manufacturing Plan. It must be so clear that someone else could build your bridge without asking you a single question.",
+    "s3.tools.title": "Draw your blueprint by hand",
+    "s3.tools.text": "Use an A4 sheet, a pencil and a ruler. Draw your bridge <strong>to scale</strong> (for example, 1 cm on paper = 1 cm in real life) using <strong>only straight lines</strong>. Write the length, height and width next to the drawing, and label every piece with what it is and what it is made of (e.g. \"Pier: paper cylinder\", \"Deck: zigzag paper\"). When you finish, take a <strong>sharp, well-lit photo</strong> of the sheet and upload that photo to Toddle. The on-screen canvas below is only for quick practice — the official blueprint must be hand-drawn on paper.",
+    "s3.c1": "Use a ruler — clean, straight lines.",
+    "s3.c2": "Write the measurements: length, height and width in centimetres.",
+    "s3.c3": "Label every piece: what it is and what it is made of (e.g. \"Pier: paper cylinder\", \"Deck: zigzag paper\").",
+    "s3.calc.title": "Quick measurement check",
+    "s3.length": "Length (cm)", "s3.height": "Height (cm)", "s3.width": "Width (cm)",
+    "s3.spanOk": "✅ Good — your bridge is longer than the 30 cm gap, so it can rest on both sides.",
+    "s3.spanBad": "⚠️ Too short! The bridge must be longer than 30 cm so it rests on both sides of the gap.",
+    "s3.spanEmpty": "Enter the length to check it against the 30 cm gap.",
+    "s3.canvas": "Optional practice canvas (official blueprint must be hand-drawn on paper)",
+
+    "s4.title": "Step 4: Materials Invoice (the maths)",
+    "s4.intro": "Fill in the materials you need. The calculator updates automatically and warns you if you go over budget.",
+    "s4.sheets": "A4 sheets needed", "s4.tape": "Centimetres of tape needed",
+    "s4.sheetsCost": "Paper cost", "s4.strips": "10 cm strips", "s4.tapeCost": "Tape cost",
+    "s4.total": "Total project cost", "s4.budget": "Budget", "s4.left": "Credits left",
+    "s4.ok": "✅ Within budget! Your design is viable.",
+    "s4.bad": "❌ Over budget by {n} credits. Change the design until it fits!",
+    "s4.note": "Tape is charged in complete 10 cm strips, so 25 cm of tape = 3 strips = 300 credits.",
+    "unit.credits": "credits",
+
+    "s5.title": "Step 5: Justification",
+    "s5.intro": "Under your blueprint, write a short paragraph answering this question:",
+    "s5.prompt": "\"Why did you choose this design? Explain how you used geometry to make sure the bridge won't break, and how you made sure you didn't go over the 10,000-credit budget.\"",
+    "s5.placeholder": "Write your justification here...",
+    "s5.words": "{n} words",
+    "s5.tip": "Aim for at least 60 words. Mention the shapes you used and show your numbers.",
+
+    "s6.title": "Submit on Toddle — before Saturday 7 November!",
+    "s6.intro": "To pass Phase B, upload these to the Toddle task before Saturday 7 November:",
+    "s6.i0": "All group members' names and surnames are written in the first box at the top of this page.",
+    "s6.i1": "Photo of your two initial sketches (Step 2).",
+    "s6.i2": "A sharp photo of the final blueprint and your materials invoice (Steps 3 and 4).",
+    "s6.i3": "The text of your justification (Step 5).",
+    "s6.warn.title": "Heads up!",
+    "s6.warn.text": "Next lesson you move on to building (Phase C). You will be given exactly the number of sheets and centimetres of tape you wrote on today's invoice. Calculate carefully!",
+    "s6.print": "Print / Save as PDF", "s6.reset": "Start over",
+    "s6.confirmReset": "Clear everything and start again?",
+    "foot.saved": "Your work is saved automatically in this browser."
+  },
+
+  ar: {
+    "app.short": "المرحلة ب",
+    "hero.badge": "التكنولوجيا · PAI 2",
+    "hero.title": "المرحلة ب: تطوير الأفكار والميزانية",
+    "hero.subtitle": "أيها المهندسون، إلى لوحة الرسم! في المرحلة (أ) اكتشفتم أي الأشكال الهندسية وأشكال الورق هي الأقوى. اليوم لديكم حصة واحدة لتصميم المخطط النهائي لجسركم وحساب ما إذا كانت ميزانيتكم تكفي لبنائه.",
+    "hero.teamLabel": "أعضاء الفريق — الاسم واللقب",
+    "hero.teamPlaceholder": "مثال: آنا غارسيا، لويس بيريز، مارتا رويز",
+    "nav.s1": "1 · القواعد", "nav.s2": "2 · الرسومات", "nav.s3": "3 · المخطط",
+    "nav.s4": "4 · الفاتورة", "nav.s5": "5 · التبرير", "nav.s6": "التسليم",
+
+    "s1.title": "الخطوة 1: المواصفات والميزانية",
+    "s1.intro": "انسخوا هذه القواعد في دفتر الهندسة قبل أن تبدأوا التصميم.",
+    "s1.r1.title": "الفجوة: 30 سنتيمترًا",
+    "s1.r1.text": "يجب أن يعبر الجسر فجوة طولها 30 سنتيمترًا.",
+    "s1.r2.title": "القاعدة الذهبية — الاستناد الحر",
+    "s1.r2.text": "يجب أن يستند الجسر على الفجوة بشكل حر. يُمنع منعًا باتًا لصق أطراف الجسر أو تثبيتها على الطاولات باللاصق. يجب أن يحمل نفسه بنفسه!",
+    "s1.r3.title": "الميزانية القصوى: 10,000 كريديت",
+    "s1.r3.text": "إذا تجاوز تصميمكم هذه الميزانية، فالتصميم غير قابل للتنفيذ.",
+    "s1.r4.title": "الورق: 1,000 كريديت لكل ورقة A4",
+    "s1.r4.text": "تُحسب كل ورقة تستخدمونها — بما في ذلك الورق الذي تقصّونه.",
+    "s1.r5.title": "اللاصق: 100 كريديت لكل شريط 10 سم",
+    "s1.r5.text": "اللاصق مخصص لوصل القطع (العُقد) فقط. لا يجوز استخدامه لتغليف الورق أو تغطيته.",
+
+    "s2.title": "الخطوة 2: عصف ذهني — رسومات أولية",
+    "s2.intro": "ارسموا فكرتين مختلفتين للجسر. هذه رسومات أولية للتفكير — السرعة أهم من الجمال. استخدموا اللوحات التفاعلية أدناه (ارسموا بالفأرة أو الإصبع أو القلم الرقمي)، أو ارسموا على ورق وصوّروها.",
+    "s2.hint.title": "تلميح هندسي",
+    "s2.hint.text": "تذكّروا اختبار الأشكال (المربع مقابل المثلث) واختبار الخط المتعرج (الزكزاك). ناقشوا كفريق: أي فكرة تبدو أقوى؟ وأيها تستخدم ورقًا ولاصقًا أقل؟",
+    "s2.a": "الرسم أ", "s2.b": "الرسم ب",
+    "s2.clear": "مسح", "s2.download": "تنزيل الصورة",
+    "s2.notes": "ملاحظات", "s2.notesPlaceholder": "ماذا قال فريقكم عن هذه الفكرة؟",
+
+    "s3.title": "الخطوة 3: المخطط النهائي (رسم هندسي)",
+    "s3.intro": "اختاروا أفضل فكرة، وأنتجوا مخطط التصنيع. يجب أن يكون واضحًا لدرجة أن يستطيع شخص آخر بناء جسركم دون أن تسألوه أي سؤال.",
+    "s3.tools.title": "ارسموا مخططكم يدويًا",
+    "s3.tools.text": "استخدموا ورقة A4 وقلم رصاص ومسطرة. ارسموا جسركم <strong>بمقياس رسم</strong> (مثلًا: 1 سم على الورق = 1 سم في الواقع) وبخطوط مستقيمة فقط. اكتبوا الطول والارتفاع والعرض بجانب الرسم، وسمّوا كل قطعة بما هي وممّ صُنعت (مثال: «دعامة: أسطوانة ورقية»، «أرضية: ورق بشكل زكزاك»). عند الانتهاء، خذوا <strong>صورة واضحة وجيدة الإضاءة</strong> للورقة وارفعوها إلى Toddle. اللوحة على الشاشة أدناه للتدريب السريع فقط — المخطط الرسمي يجب أن يُرسم يدويًا على الورق.",
+    "s3.c1": "استخدموا المسطرة — خطوط نظيفة ومستقيمة.",
+    "s3.c2": "اكتبوا القياسات: الطول والعرض والارتفاع بالسنتيمتر.",
+    "s3.c3": "سمّوا كل قطعة: ما هي وممّ صُنعت (مثال: «دعامة: أسطوانة ورقية»، «أرضية: ورق بشكل زكزاك»).",
+    "s3.calc.title": "تحقّق سريع من القياسات",
+    "s3.length": "الطول (سم)", "s3.height": "الارتفاع (سم)", "s3.width": "العرض (سم)",
+    "s3.spanOk": "✅ ممتاز — جسركم أطول من الفجوة (30 سم)، لذا يمكنه الاستناد على الجانبين.",
+    "s3.spanBad": "⚠️ قصير جدًا! يجب أن يكون الجسر أطول من 30 سم ليستند على جانبي الفجوة.",
+    "s3.spanEmpty": "أدخلوا الطول للتحقق منه مقابل فجوة 30 سم.",
+    "s3.canvas": "لوحة تدريب اختيارية (المخطط الرسمي يُرسم يدويًا على الورق)",
+
+    "s4.title": "الخطوة 4: فاتورة المواد (الحساب)",
+    "s4.intro": "اكتبوا المواد التي تحتاجونها. تتحدّث الآلة الحاسبة تلقائيًا وتنبّهكم إذا تجاوزتم الميزانية.",
+    "s4.sheets": "عدد أوراق A4 المطلوبة", "s4.tape": "سنتيمترات اللاصق المطلوبة",
+    "s4.sheetsCost": "تكلفة الورق", "s4.strips": "شرائط 10 سم", "s4.tapeCost": "تكلفة اللاصق",
+    "s4.total": "التكلفة الإجمالية للمشروع", "s4.budget": "الميزانية", "s4.left": "الكريديت المتبقي",
+    "s4.ok": "✅ ضمن الميزانية! تصميمكم قابل للتنفيذ.",
+    "s4.bad": "❌ تجاوزتم الميزانية بمقدار {n} كريديت. عدّلوا التصميم حتى يناسبها!",
+    "s4.note": "يُحسب اللاصق بشرائط كاملة من 10 سم، لذا 25 سم لاصق = 3 شرائط = 300 كريديت.",
+    "unit.credits": "كريديت",
+
+    "s5.title": "الخطوة 5: التبرير",
+    "s5.intro": "أسفل مخططكم، اكتبوا فقرة قصيرة تجيبون فيها عن هذا السؤال:",
+    "s5.prompt": "«لماذا اخترتم هذا التصميم؟ اشرحوا كيف استخدمتم الهندسة لضمان عدم انهيار الجسر، وكيف تأكدتم من عدم تجاوز ميزانية 10,000 كريديت.»",
+    "s5.placeholder": "اكتبوا تبريركم هنا...",
+    "s5.words": "{n} كلمة",
+    "s5.tip": "استهدفوا 60 كلمة على الأقل. اذكروا الأشكال التي استخدمتموها وأظهروا أرقامكم.",
+
+    "s6.title": "التسليم على Toddle — قبل السبت 7 نوفمبر!",
+    "s6.intro": "لاجتياز المرحلة ب، ارفعوا ما يلي إلى مهمة Toddle قبل السبت 7 نوفمبر:",
+    "s6.i0": "أسماء وألقاب جميع أعضاء الفريق مكتوبة في المربع الأول أعلى الصفحة.",
+    "s6.i1": "صورة لرسميكم الأوليين (الخطوة 2).",
+    "s6.i2": "صورة واضحة للمخطط النهائي وفاتورة المواد (الخطوتان 3 و4).",
+    "s6.i3": "نص التبرير (الخطوة 5).",
+    "s6.warn.title": "تنبيه!",
+    "s6.warn.text": "في الحصة القادمة تنتقلون إلى التصنيع (المرحلة ج). سيُعطى لكم بالضبط عدد الأوراق وسنتيمترات اللاصق التي كتبتموها في فاتورة اليوم. احسبوا بدقة!",
+    "s6.print": "طباعة / حفظ PDF", "s6.reset": "البدء من جديد",
+    "s6.confirmReset": "هل تريدون مسح كل شيء والبدء من جديد؟",
+    "foot.saved": "تُحفظ أعمالكم تلقائيًا في هذا المتصفح."
+  }
+};
+
+const BUDGET = 10000;
+const CREDIT = 1000;   // per A4 sheet
+const TAPE_PER_STRIP = 10;
+const TAPE_STRIP_COST = 100;
+
+const getLang = () => localStorage.getItem('phaseB_lang') || 'en';
+const t = key => (i18n[getLang()][key] !== undefined ? i18n[getLang()][key] : key);
+const fmt = n => new Intl.NumberFormat('en-US').format(n);
+
+/* =========================================================
+   2. LANGUAGE SWITCH
+   ========================================================= */
+function applyLang(lang){
+  localStorage.setItem('phaseB_lang', lang);
+  const dict = i18n[lang];
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (dict[k] !== undefined) el.textContent = dict[k];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.dataset.i18nPlaceholder;
+    if (dict[k] !== undefined) el.placeholder = dict[k];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const k = el.dataset.i18nHtml;
+    if (dict[k] !== undefined) el.innerHTML = dict[k];
+  });
+  document.querySelectorAll('.lang-switch button').forEach(b =>
+    b.classList.toggle('active', b.dataset.lang === lang)
+  );
+
+  updateCalc();
+  updateSpanCheck();
+  updateWordCount();
+}
+
+document.querySelectorAll('.lang-switch button').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+/* =========================================================
+   3. STATE PERSISTENCE
+   ========================================================= */
+const STATE_KEY = 'phaseB_state';
+
+function loadState(){
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch(e){}
+  document.querySelectorAll('[data-persist]').forEach(el => {
+    if (!el.id || !(el.id in data)) return;
+    if (el.type === 'checkbox') el.checked = data[el.id];
+    else el.value = data[el.id];
+  });
+}
+
+let saveTimer;
+function saveState(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = {};
+    document.querySelectorAll('[data-persist]').forEach(el => {
+      if (!el.id) return;
+      data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+    });
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(data)); } catch(e){}
+  }, 250);
+}
+
+document.addEventListener('input', e => {
+  if (!e.target.matches('[data-persist]')) return;
+  saveState();
+  if (e.target.id === 'sheets' || e.target.id === 'tape') updateCalc();
+  if (e.target.id === 'len') updateSpanCheck();
+  if (e.target.id === 'justif') updateWordCount();
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-persist]')) saveState();
+});
+
+/* =========================================================
+   4. BUDGET CALCULATOR
+   ========================================================= */
+function updateCalc(){
+  const sheetsEl = document.getElementById('sheets');
+  const tapeEl   = document.getElementById('tape');
+  if (!sheetsEl || !tapeEl) return;
+
+  const sheets = Math.max(0, parseInt(sheetsEl.value, 10) || 0);
+  const tapeCm = Math.max(0, parseInt(tapeEl.value, 10) || 0);
+
+  const strips    = Math.ceil(tapeCm / TAPE_PER_STRIP);
+  const paperCost = sheets * CREDIT;
+  const tapeCost  = strips * TAPE_STRIP_COST;
+  const total     = paperCost + tapeCost;
+  const left      = BUDGET - total;
+  const unit      = t('unit.credits');
+
+  document.getElementById('paperCost').textContent   = fmt(paperCost) + ' ' + unit;
+  document.getElementById('stripsCount').textContent = fmt(strips);
+  document.getElementById('tapeCost').textContent    = fmt(tapeCost) + ' ' + unit;
+  document.getElementById('totalCost').textContent   = fmt(total) + ' ' + unit;
+  document.getElementById('budgetVal').textContent   = fmt(BUDGET) + ' ' + unit;
+  document.getElementById('leftCredits').textContent = fmt(left) + ' ' + unit;
+
+  const pct = Math.min(100, (total / BUDGET) * 100);
+  const fill = document.getElementById('barFill');
+  fill.style.width = pct + '%';
+  fill.style.background = total > BUDGET ? 'var(--bad)' : (pct > 85 ? 'var(--accent)' : 'var(--ok)');
+
+  const msg = document.getElementById('budgetMsg');
+  if (total > BUDGET){
+    msg.textContent = t('s4.bad').replace('{n}', fmt(total - BUDGET));
+    msg.className = 'msg bad';
+  } else if (total === 0){
+    msg.textContent = '';
+    msg.className = 'msg';
+  } else {
+    msg.textContent = t('s4.ok');
+    msg.className = 'msg ok';
+  }
+}
+
+/* =========================================================
+   5. SPAN CHECK (bridge must be longer than 30 cm)
+   ========================================================= */
+function updateSpanCheck(){
+  const el = document.getElementById('spanMsg');
+  const lenEl = document.getElementById('len');
+  if (!el || !lenEl) return;
+  const v = parseFloat(lenEl.value);
+
+  if (!v || v <= 0){
+    el.textContent = t('s3.spanEmpty');
+    el.className = 'msg';
+  } else if (v > 30){
+    el.textContent = t('s3.spanOk');
+    el.className = 'msg ok';
+  } else {
+    el.textContent = t('s3.spanBad');
+    el.className = 'msg bad';
+  }
+}
+
+/* =========================================================
+   6. WORD COUNT
+   ========================================================= */
+function updateWordCount(){
+  const ta = document.getElementById('justif');
+  const wc = document.getElementById('wordCount');
+  if (!ta || !wc) return;
+  const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  wc.textContent = t('s5.words').replace('{n}', words);
+}
+
+/* =========================================================
+   7. DRAWING CANVASES
+   ========================================================= */
+const GRID = 30;
+
+function drawGrid(ctx, w, h){
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#dce6f5';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += GRID){
+    ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, h); ctx.stroke();
+  }
+  for (let y = 0; y <= h; y += GRID){
+    ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(w, y + .5); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function initCanvas(canvas, storageKey, color){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+
+  drawGrid(ctx, W, H);
+
+  // restore saved drawing
+  const saved = localStorage.getItem(storageKey);
+  if (saved){
+    const img = new Image();
+    img.onload = () => { ctx.clearRect(0, 0, W, H); ctx.drawImage(img, 0, 0, W, H); };
+    img.src = saved;
+  }
+
+  let drawing = false, lastX = 0, lastY = 0;
+
+  function getPos(e){
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (W / r.width),
+      y: (e.clientY - r.top)  * (H / r.height)
+    };
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    drawing = true;
+    const p = getPos(e);
+    lastX = p.x; lastY = p.y;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing) return;
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    lastX = p.x; lastY = p.y;
+  });
+
+  function stop(){
+    if (!drawing) return;
+    drawing = false;
+    try { localStorage.setItem(storageKey, canvas.toDataURL('image/png')); } catch(e){}
+  }
+  canvas.addEventListener('pointerup', stop);
+  canvas.addEventListener('pointercancel', stop);
+  canvas.addEventListener('pointerleave', stop);
+
+  const clearBtn = document.querySelector(`[data-clear="${canvas.id}"]`);
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    drawGrid(ctx, W, H);
+    localStorage.removeItem(storageKey);
+  });
+
+  const dlBtn = document.querySelector(`[data-download="${canvas.id}"]`);
+  if (dlBtn) dlBtn.addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.download = canvas.id + '-sketch.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+/* =========================================================
+   8. BUTTONS
+   ========================================================= */
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm(t('s6.confirmReset'))){
+    localStorage.removeItem(STATE_KEY);
+    localStorage.removeItem('cv1'); localStorage.removeItem('cv2'); localStorage.removeItem('cv3');
+    location.reload();
+  }
+});
+
+/* =========================================================
+   9. INIT
+   ========================================================= */
+loadState();
+applyLang(getLang());
+updateCalc();
+updateSpanCheck();
+updateWordCount();
+initCanvas(document.getElementById('cv1'), 'cv1', '#12296b');
+initCanvas(document.getElementById('cv2'), 'cv2', '#12296b');
+initCanvas(document.getElementById('cv3'), 'cv3', '#0b8f62');
+</script>
+</body>
+</html>
